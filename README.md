@@ -1,3 +1,24 @@
+Preface
+============
+
+This repository is based off of [Guardian/VideoJS-VPAID](https://github.com/guardian/video-js-vpaid) and [VideoJS/VideoJS-SWF](https://github.com/videojs/video-js-swf). 
+This is my attempt at getting Flash VPAID support for VideoJS and most of it is currently just a mashup and is in no way in it's final form. I will modify this over time
+as I slowly piece together everything.
+
+Currently Working: 
+* LiveRail VPAID ad example --> located within /sandbox/
+
+Currently Broken?:
+* YuMe VPAID ad example
+* Example Ad SWF that is compiled with `grunt mxmlc`
+
+The source code for the VideoJS SWF is available and can be editted and looked at, and I am open to anyone reporting issues or contributing to this. I cannot guarentee the tests
+work right now as I am solely just working on getting the Flash VPAID stable.
+
+I am available via Twitter for direct questions or feedback, my handle is [@Manbearpixel](https://twitter.com/manbearpixel). Thanks for checking this repo out!
+
+***
+
 The light-weight Flash video player that makes Flash work like HTML5 video. This allows player skins, plugins, and other features to work with both HTML5 and Flash
 
 This project doesn't need to be used if you simply want to use the Flash video player.  Head back to the main Video.js project if that's all you need, as the compiled SWF is checked in there.

@@ -5,6 +5,7 @@ package{
     import com.videojs.structs.ExternalEventName;
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.Base64;
+	
     import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
@@ -33,8 +34,87 @@ package{
             _stageSizeTimer.addEventListener(TimerEvent.TIMER, onStageSizeTimerTick);
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
         }
+		
+		public function console(mixedVar:*):void {
+			ExternalInterface.call("console.info", "[ActionScript]");
+			ExternalInterface.call("console.group");
+			ExternalInterface.call("console.log", mixedVar);
+			ExternalInterface.call("console.groupEnd");
+		}
+		
+		public function externalCallback(eventName:String, eventFunction:Function):void {
+			console("creating external callback: " + eventName);
+			ExternalInterface.addCallback(eventName, eventFunction);
+		}
+		
+		public function mbp_initVPAID(adURL:String):void {
+			console("initiating VPAID with ad URL: " + adURL);
+			/*console(_app.model.adContainer.testFunction());*/
+			/*console("current SRC: " + _app.model.adContainer.src());*/
+			
+			try {
+				_app.model.adContainer.loadVPAIDXML(adURL, 
+					function(event:Event):void {
+						console("ONCOMPLETE");
+						var response:String = event.target.data;
+						/*console("RESPONSE");*/
+						/*console(response);*/
+				
+						var adSWF:String = _app.model.adContainer.findVPAIDSWF(response);
+						/*console("AD SWF");*/
+						/*console(adSWF);*/
+						/*console(adSWF.indexOf(".swf"));*/
+				
+						if (adSWF.indexOf(".swf") != -1) {
+							console("PROPER SWF")
+							/*_app.model.adContainer.src(adSWF);*/
+							_app.model.adContainer.setSrcTest(adSWF);
+							console("testing...");
+							console(_app.model.adContainer.getSrc());
+							_app.model.adContainer.loadAdAsset();
+						}
+						else {
+							console("NO PROPER SWF FOUND!");
+						}
+					}
+				);
+			}
+			catch (e:Error) {
+				console("ERROR");
+				console(e);
+			}		
+			
+			/*var adSWF:String =
+			if (adSWF != "error") {
+				console("SWF found! [" + adSWF + "]");
+				_app.model.adContainer.src(adSWF);
+				_app.model.adContainer.setSrcTest(adSWF);
+				_app.model.adContainer.loadAdAsset();
+			}
+			else {
+				console("NO SWF FOUND!!!");
+			}*/
+			/*_vpaid = new VPAID(adURL);*/
+		}
+		
+		public function mbp_initVPAIDSWF(aVPAIDSWF:String):void {
+			var adSWF:String = aVPAIDSWF;
+			console("initiating VPAID with ad SWF: " + adSWF);
+			try {
+				console("PROPER SWF");
+				_app.model.adContainer.setSrcTest(adSWF);
+				console("testing...");
+				console(_app.model.adContainer.getSrc());
+				_app.model.adContainer.loadAdAsset();
+			}
+			catch (e:Error) {
+				console("Error");
+				console(e);
+			}
+		}
         
         private function init():void{
+			
             // Allow JS calls from other domains
             Security.allowDomain("*");
             Security.allowInsecureDomain("*");
@@ -49,7 +129,6 @@ package{
             }
 
             _app = new VideoJSApp();
-            
             addChild(_app);
 
             _app.model.stageRect = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
@@ -57,11 +136,15 @@ package{
             // add content-menu version info
 
             var _ctxVersion:ContextMenuItem = new ContextMenuItem("VideoJS Flash Component v" + VERSION, false, false);
-            var _ctxAbout:ContextMenuItem = new ContextMenuItem("Copyright © 2014 Brightcove, Inc.", false, false);
+            var _ctxAbout:ContextMenuItem = new ContextMenuItem("VPAID-MBP | Copyright © 2014 Brightcove, Inc.", false, false);
             var _ctxMenu:ContextMenu = new ContextMenu();
             _ctxMenu.hideBuiltInItems();
             _ctxMenu.customItems.push(_ctxVersion, _ctxAbout);
             this.contextMenu = _ctxMenu;
+			
+			// VPAID
+			externalCallback("mbp_initVPAID", mbp_initVPAID);
+			externalCallback("mbp_initVPAIDSWF", mbp_initVPAIDSWF);
         }
         
         private function registerExternalMethods():void{

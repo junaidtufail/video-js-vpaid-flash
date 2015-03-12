@@ -6,7 +6,9 @@ package com.videojs.vpaid {
     import flash.display.Loader;
     import flash.display.Sprite;
     import flash.events.*;
-    import flash.net.URLRequest;
+    /*import flash.net.URLRequest;*/
+	import flash.net.*;
+	import flash.external.ExternalInterface;
     import flash.system.LoaderContext;
     import com.videojs.vpaid.events.VPAIDEvent;
 
@@ -23,6 +25,17 @@ package com.videojs.vpaid {
         public function AdContainer(){
             _model = VideoJSModel.getInstance();
         }
+		
+		public function console(mixedVar:*):void {
+			ExternalInterface.call("console.info", "[ActionScript] [AdContainer]");
+			ExternalInterface.call("console.group");
+			ExternalInterface.call("console.log", mixedVar);
+			ExternalInterface.call("console.groupEnd");
+		}
+		
+		public function testFunction():String {
+			return "You got me!";
+		}
 
         public function get hasActiveAdAsset(): Boolean {
             return _vpaidAd != null;
@@ -58,10 +71,21 @@ package com.videojs.vpaid {
 
         public function set src(pSrc:String): void {
             _src = pSrc;
+			console("Set SRC!!!");
         }
         public function get src():String {
             return _src;
         }
+		
+		public function setSrcTest(pSrc:String):void {
+			console("incoming src: " + pSrc);
+			_src = pSrc;
+			console("survey says... " + _src);
+		}
+		
+		public function getSrc():String {
+			return _src;
+		}
 
         public function resize(width: Number, height: Number, viewMode: String = "normal"): void {
             if (hasActiveAdAsset) {
@@ -112,8 +136,63 @@ package com.videojs.vpaid {
                 _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
             }
         }
+		
+		public function loadVPAIDXML(vpaidAdURL:String, onComplete:Function):* {
+			
+			console("requesting vpaid...");
+			console("url::" + vpaidAdURL);
+		
+			var request:URLRequest = new URLRequest(vpaidAdURL);
+			request.method = URLRequestMethod.GET;
+		
+			var variables:URLVariables = new URLVariables();
+			variables.name = "TouchVision";
+			request.data = variables;
+		
+			var loader:URLLoader = new URLLoader();
+			loader.addEventListener(Event.COMPLETE, onComplete);
+			loader.dataFormat = URLLoaderDataFormat.TEXT;
+			loader.load(request);
+		}
+		
+		public function findVPAIDSWF(xmlSrc:String):String {
+			
+			// create new XML from xmlSrc
+			/*var vpaidXML = new XML(event.target.data);*/
+			var vpaidXML = new XML(xmlSrc);
+		
+			console("ad title test::" + vpaidXML.Ad.InLine.AdTitle.toString());
+			console("ad vpaid version test::" + vpaidXML.attribute("version").toXMLString());
+		
+			// determine vpaid ad swf url within vpaidXML.Ad.InLine.Creatives
+			var vpaidSWFURL:String = "";
+			for each (var mediaFile:XML in vpaidXML.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile) {
+				console("MEDIA FILE");
+				console(mediaFile.toString());
+				if (mediaFile.toString().indexOf(".swf") != -1) {
+					vpaidSWFURL = mediaFile;
+				}
+				
+				/*var hasLinear:Boolean = (creative.Linear.children().length() > 0);
+				if (hasLinear) {
+					ExternalInterface.call("console.log", "CREATIVE!!!");
+					ExternalInterface.call("console.log", creative.toXMLString());
+					vpaidSWFURL = creative.Linear.MediaFiles[0].MediaFile.toString();
+				}*/
+			}
+		
+			if (vpaidSWFURL != "") {
+				/*console("ad swf found::" + vpaidSWFURL);*/
+				return vpaidSWFURL;
+			}
+			else {
+				/*console("no ad swf found, aborting?");*/
+				return "error";
+			}
+		}
         
         public function loadAdAsset(): void {
+			console("load ad asset: " + _src);
             _loadStarted = true;
             var loader:Loader = new Loader();
             var loaderContext:LoaderContext = new LoaderContext();
@@ -133,7 +212,9 @@ package com.videojs.vpaid {
         
         private function successfulCreativeLoad(evt: Object): void {
 
+			console("successful creative load!");
             _vpaidAd = evt.target.content.getVPAID();
+			/*console(_vpaidAd);*/
             var duration = _vpaidAd.hasOwnProperty("adDuration") ? _vpaidAd.adDuration : 0,
                 width    = _vpaidAd.hasOwnProperty("adWidth") ? _vpaidAd.adWidth : 0,
                 height   = _vpaidAd.hasOwnProperty("adHeight") ? _vpaidAd.adHeight : 0;
@@ -147,25 +228,38 @@ package com.videojs.vpaid {
             if (!isNaN(height) && height > 0) {
                 _model.height = height;
             }
+			
+			console("Duration: " + duration + " | Width: " + width + " | Height: " + height);
 
             _vpaidAd.addEventListener(VPAIDEvent.AdLoaded, function():void {
+				console("OnAdLoaded");
                 onAdLoaded();
+            });
+			
+            _vpaidAd.addEventListener(VPAIDEvent.AdLog, function(data:*):void {
+				console("OnAdLog");
+				/*console(data);*/
             });
             
             _vpaidAd.addEventListener(VPAIDEvent.AdStopped, function():void {
+				console("OnAdStoppped");
                 onAdStopped();
             });
             
             _vpaidAd.addEventListener(VPAIDEvent.AdError, function():void {
+				console("OnAdError");
                 onAdError();
             });
 
             _vpaidAd.addEventListener(VPAIDEvent.AdStarted, function():void {
+				console("OnAdStarted");
                 onAdStarted();
             });
 
+			console("handshake");
             _vpaidAd.handshakeVersion("2.0");
 
+			console("initAd");
             // Use stage rect because current ad implementations do not currently provide width/height.
             _vpaidAd.initAd(_model.stageRect.width, _model.stageRect.height, "normal", _model.bitrate, _model.adParameters);
         }

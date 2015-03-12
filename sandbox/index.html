@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VPAID + Video.js | HTML5 Video Player</title>
+
+    <!-- Change URLs to wherever Video.js files will be hosted -->
+    <link href="../node_modules/video.js/dist/video-js/video-js.css" rel="stylesheet" type="text/css">
+    <!-- video.js must be in the <head> for older IEs to work. -->
+    <script src="../node_modules/video.js/dist/video-js/video.dev.js"></script>
+		
+	<script src="js/videojs-vpaid-flash.js"></script>
+	<script src="js/videojs-vpaid-js.js"></script>
+		
+	<style>
+	body {
+		background-color: #eee;
+	}
+	.video-js .vjs-tech {
+		z-index: 5;
+	}
+	
+	.content-center {
+		max-width: 720px;
+		margin: 0 auto;
+		width: 99%;
+	}
+		
+	.vpaid-settings-wrap {
+		margin-top: 15px;
+		margin-bottom: 50px;
+	}
+	.vpaid-settings-wrap label {
+		float: left;
+		width: 30%;
+	}
+	.vpaid-settings-wrap input {
+		float: right;
+		width: 70%;
+		box-sizing: border-box;
+		padding: 4px;
+	}
+	.vpaid-settings-wrap button {
+		width: 100%;
+		font-size: 15px;
+		padding: 4px;
+		background-color: #7BC4ED;
+		border: 3px solid #7BC4ED;
+		color: #fff;
+		margin-top: 15px;
+	}
+	.vpaid-settings-wrap .option-button {
+		width: 30%;
+		font-size: 13px;
+		padding: 4px;
+		background-color: #DDD;
+		border: 3px solid #DDD;
+		color: #666;
+		margin-top: 15px;
+	}
+	.vpaid-settings-wrap button:hover,
+	.vpaid-settings-wrap .option-button:hover {
+		cursor: pointer;
+		border-bottom-color: rgba(0, 0, 0, 0.2);
+	}
+	.content-center .video-js {
+		width: 100%;
+		height: 300px;
+	}
+	button:focus {
+		outline: 0;
+	}
+	
+	.notes {
+		background-color: #fff;
+		border: 1px solid #ccc;
+		padding: 10px 5px;
+		margin-top: 15px;
+	}
+	
+	.notes p {
+		margin: 0;
+	}
+	
+	.notes ul {
+		padding: 0 20px;
+		margin-top: 10px;
+	}
+	
+	.notes li {
+		margin-bottom: 10px;
+		border-bottom: 1px solid #ccc;
+		padding-bottom: 10px;
+	}
+	
+	.notes li:last-child {
+		margin-bottom: 0;
+		border: 0;
+	}
+	
+	@media (max-width: 480px) {
+		.content-center {
+			width: 100%;
+		}
+		
+		.vpaid-settings-wrap label,
+		.vpaid-settings-wrap input {
+			float: none;
+		}
+		
+		.vpaid-settings-wrap input {
+			width: 100%;
+		}
+	}
+	
+	</style>
+</head>
+<body>
+
+<div class="content-center">
+	<video id="my-video" class="video-js vjs-default-skin" controls preload="none" width="auto" height="auto" poster="http://video-js.zencoder.com/oceans-clip.png">
+	    <!-- <source src="../sandbox/exampleadvpaid2.swf" type='application/x-shockwave-flash' /> -->
+		<!-- <source src="http://vjs.zencdn.net/v/oceans.mp4" type='video/mp4'> -->
+	</video>
+</div>
+
+<div class="content-center vpaid-settings-wrap">
+	<div style="min-height: 30px;line-height: 30px;">
+		<label for="vpaid_url">VPAID XML URL</label>
+		<input width="300" value="http://player.kaltura.com/modules/AdSupport/tests/liverail.xml?random={utility.random}&timestamp={utility.timestamp}&referrer_url={utility.referrer_url}&referrer_host={utility.referrer_host}" name="vpaid_url" id="vpaid_url" />
+		<br style="clear: both;"/>
+	</div>
+	<div class="vpaid-options">
+		<button class="option-button" onclick="setVPAID('http://player.kaltura.com/modules/AdSupport/tests/liverail.xml?random={utility.random}&timestamp={utility.timestamp}&referrer_url={utility.referrer_url}&referrer_host={utility.referrer_host}')">Set to LiveRail</button>
+		<button class="option-button" onclick="setVPAID('http://shadowcdn-01.yumenetworks.com/ym/1B3uA91O2152/1349/levLYHWa/vpaid_u_as3.xml')">Set to YuMe</button>
+	</div>
+	<button onclick="runVPAID()">Run</button>
+	<div class="notes">
+		<p>Notes</p>
+		<ul>
+			<li>To re-test a VPAID XML Ad you will need to refresh the page, or <a href="#" onclick="refreshPage()">click here</a>.</li>
+			<li>There are numerous debug logs being generated, please view the JavaScript console to see what is going on</li>
+		</ul>
+	</div>
+</div>
+
+<script>
+
+function refreshPage() {
+	location.reload();
+}
+
+function setVPAID(vpaidURL) {
+	document.getElementById("vpaid_url").value = vpaidURL;
+}
+
+function runVPAID() {
+	
+	console.log("Running VPAID with Ad URL: " + document.getElementById("vpaid_url").value);
+	
+	var options = {
+		// This is where the VPAID integrated VideoJS SWF file is located
+		// IT HAS TO BE a full path to work properly! No relative paths work here!
+		vpaidflash: {
+			swf: 'http://localhost:8000/dist/video-js.swf',
+			ready: function() { console.log("VPAIDFLASH ready"); },
+			onReady: function() { console.log("VPAIDFLASH onready"); }
+		},
+		vpaidjs: {
+			// Unsure what this is right now...
+		},
+		techOrder: ['vpaidflash'],
+		src: [
+			// { src: 'example-vpaid-ad.swf', type: 'application/x-shockwave-flash' }
+			{ src:'http://vjs.zencdn.net/v/oceans.mp4', type:'video/mp4'}
+		]
+	};
+
+	var player = videojs('my-video', options).ready(function(){
+		
+		console.log("VideoJS ready");
+		console.log(this);
+		console.log(this.el_.firstChild);
+		
+		var swfObject = this.el_.firstChild;
+		if (document.getElementById("vpaid_url").value.length == 0) {
+			alert("No VPAID XML URL Set!");
+		}
+		else {
+			console.log("initiating VPAID");
+			var vpaidURL = document.getElementById("vpaid_url").value;
+			swfObject.mbp_initVPAID(vpaidURL);
+		}
+		
+		// MANUAL TESTING/COMMANDS BELOW --- WILL WORK IN CHROME CONSOLE AT RUNTIME (still have to refresh page after testing)
+		// THESE ARE DIRECT METHODS AVAILABLE WITHIN THE ACTIONSCRIPT FILES WHICH COMPILE INTO 'video-js.swf'
+		
+		// Initiate VPAID with a specified VPAID XML URL
+		// swfObject.mbp_initVPAID("http://shadowcdn-01.yumenetworks.com/ym/1B3uA91O2152/1349/levLYHWa/vpaid_u_as3.xml");
+		// swfObject.mbp_initVPAID("http://player.kaltura.com/modules/AdSupport/tests/liverail.xml?");
+		// swfObject.mbp_initVPAIDSWF("http://localhost:8000/sandbox/exampleadvpaid2.swf");
+		// swfObject.mbp_initVPAIDSWF("http://localhost:8000/sandbox/exampleAd/Example.swf");
+	});
+
+	player.play();
+}
+
+</script>
+
+</body>
+</html>
