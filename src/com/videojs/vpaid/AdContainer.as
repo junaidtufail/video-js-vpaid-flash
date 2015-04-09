@@ -3,6 +3,7 @@ package com.videojs.vpaid {
     import com.videojs.*;
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.structs.ExternalEventName;
+	import flash.display.DisplayObject;
     import flash.display.Loader;
     import flash.display.Sprite;
     import flash.events.*;
@@ -21,6 +22,7 @@ package com.videojs.vpaid {
         private var _isPaused:Boolean = true;
         private var _hasEnded:Boolean = false;
         private var _loadStarted:Boolean = false;
+		private var content:DisplayObject;
 
         public function AdContainer(){
             _model = VideoJSModel.getInstance();
@@ -112,7 +114,7 @@ package com.videojs.vpaid {
         }
         
         private function onAdLoaded(): void {
-            addChild(_vpaidAd);
+            addChild(content);
             _vpaidAd.startAd();
         }
 
@@ -213,6 +215,7 @@ package com.videojs.vpaid {
         private function successfulCreativeLoad(evt: Object): void {
 
 			console("successful creative load!");
+			content = evt.target.content as DisplayObject;
             _vpaidAd = evt.target.content.getVPAID();
 			/*console(_vpaidAd);*/
             var duration = _vpaidAd.hasOwnProperty("adDuration") ? _vpaidAd.adDuration : 0,
