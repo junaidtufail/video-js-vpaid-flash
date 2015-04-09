@@ -1,3 +1,6 @@
+This is a fork of https://github.com/Manbearpixel/video-js-vpaid-flash and fixes Yume VPAID Ads.
+
+
 Preface
 ============
 
